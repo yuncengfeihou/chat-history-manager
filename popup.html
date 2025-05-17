@@ -1,0 +1,29 @@
+<!-- 用于定义历史聊天列表弹窗的模板 -->
+<div id="chat-history-manager-popup" class="character_popup">
+    <div class="character_select_portrait_div">
+        <img id="history-popup-avatar" src="" alt="Avatar" class="dialogue_portrait history-popup-avatar">
+    </div>
+    <div class="character_select_block_div">
+        <h3 id="history-popup-name"></h3>
+        <p>历史聊天文件 (.jsonl)</p>
+        <div id="history-chat-list" class="list">
+            <!-- 历史聊天项将在这里由 JavaScript 动态添加 -->
+            <div class="chat-item-template" style="display: none;">
+                <div class="chat-item-info">
+                    <span class="chat-file-name"></span>
+                    <span class="chat-message-count"></span>
+                    <span class="chat-last-message"></span>
+                    <span class="chat-last-date"></span>
+                </div>
+                <div class="chat-item-actions">
+                    <button class="restore-chat-button menu_button">恢复</button>
+                    <!-- 也可以添加删除按钮等，但为简化示例先不加 -->
+                </div>
+            </div>
+            <p id="history-list-empty-message" style="display: none;">未找到历史聊天文件。</p>
+        </div>
+        <div class="history-actions">
+            <button id="history-manager-close" class="menu_button">关闭</button>
+        </div>
+    </div>
+</div>
