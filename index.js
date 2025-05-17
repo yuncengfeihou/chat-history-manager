@@ -3,6 +3,8 @@
  * Allows viewing and restoring past chat files for the selected character or group.
  */
 
+import { renderExtensionTemplateAsync } from '../../../extensions.js';
+
 // 获取插件 ID (从 manifest.json 读取，或者直接在这里定义，推荐定义)
 const pluginId = 'chat-history-manager';
 
