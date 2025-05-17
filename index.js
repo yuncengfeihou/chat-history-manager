@@ -8,7 +8,7 @@ import {
     selected_group, // 当前选中的群组 ID
     characters, // 全局角色数组
     openCharacterChat, // 打开指定角色的聊天文件
-    select_group_chats, // 选择并加载指定的群组聊天文件
+    select_group_chats as selectGroupChatFile, // 选择并加载指定的群组聊天文件
     saveChatConditional // 有条件地保存当前聊天 (用于恢复前保存当前聊天)
 } from '../../../../script.js';
 
@@ -326,7 +326,7 @@ async function restoreBackup(filename) {
             const groupId = context.selected_group;
             const chatFileNameWithoutExtension = filename.replace('.jsonl', '');
             console.log(`[${pluginId}] 正在加载群组 ${groupId} 的聊天文件: ${chatFileNameWithoutExtension}`);
-            await select_group_chats(groupId, chatFileNameWithoutExtension);
+            await selectGroupChatFile(groupId, chatFileNameWithoutExtension);
 
         } else if (context.characterId !== undefined) {
             // 如果是角色，调用 openCharacterChat 函数
