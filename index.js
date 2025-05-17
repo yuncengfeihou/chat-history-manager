@@ -8,7 +8,6 @@ import {
     selected_group, // 当前选中的群组 ID
     characters, // 全局角色数组
     openCharacterChat, // 打开指定角色的聊天文件
-    select_group_chats as selectGroupChatFile, // 选择并加载指定的群组聊天文件
     saveChatConditional // 有条件地保存当前聊天 (用于恢复前保存当前聊天)
 } from '../../../../script.js';
 
@@ -16,6 +15,7 @@ import {
     // --- 群组相关函数 ---
     select_group_chats,     // 用于选择群组聊天
     // getGroupChat, // 可能不需要，select_group_chats 应该会处理
+    select_group_chats as selectGroupChatFile, // 选择并加载指定的群组聊天文件
 } from '../../../group-chats.js';
 
 // 导入从 extensions.js 提供的辅助函数和变量
