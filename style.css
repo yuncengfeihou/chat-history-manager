@@ -1,0 +1,42 @@
+/* public/extensions/third-party/my-ui-injection-plugin/style.css */
+
+/* 扩展页面设置区的背景和边框 */
+.my-ui-injection-plugin .inline-drawer-content {
+    background-color: #3a3a3a; /* 深灰色背景 */
+    border: 1px solid #555;
+    margin-top: 5px;
+    border-radius: 5px;
+}
+
+/* 扩展页面设置区的高亮文本 */
+.my-ui-injection-plugin .my-plugin-highlight {
+    color: #ffcc00; /* 黄色高亮 */
+    font-weight: bold;
+}
+
+/* 输入框旁边的按钮样式 */
+#my_plugin_input_button {
+    border: 1px dashed #00ffff; /* 青色虚线边框 */
+    border-radius: 5px;
+    padding: 5px;
+    margin: 2px;
+    background-color: #2a2a2a; /* 深一些的背景 */
+    transition: background-color 0.2s ease;
+}
+
+#my_plugin_input_button:hover {
+    background-color: #3a3a3a;
+}
+
+/* 消息上按钮的样式 */
+.mes_button.my-plugin-message-button {
+    color: #00ff00; /* 绿色图标 */
+    border: 1px solid #00ff00;
+    border-radius: 3px;
+    padding: 2px;
+    margin-left: 5px; /* 与其他按钮间隔 */
+}
+
+.mes_button.my-plugin-message-button:hover {
+    background-color: rgba(0, 255, 0, 0.2); /* 半透明绿色背景 */
+}
