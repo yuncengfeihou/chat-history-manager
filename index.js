@@ -7,11 +7,16 @@ import {
     getRequestHeaders, // 获取发送 API 请求所需的头部信息 (CSRF token)
     selected_group, // 当前选中的群组 ID
     characters, // 全局角色数组
-    groups, // 全局群组数组
     openCharacterChat, // 打开指定角色的聊天文件
     select_group_chats, // 选择并加载指定的群组聊天文件
     saveChatConditional // 有条件地保存当前聊天 (用于恢复前保存当前聊天)
 } from '../../../../script.js';
+
+import {
+    // --- 群组相关函数 ---
+    select_group_chats,     // 用于选择群组聊天
+    // getGroupChat, // 可能不需要，select_group_chats 应该会处理
+} from '../../../group-chats.js';
 
 // 导入从 extensions.js 提供的辅助函数和变量
 // 路径: '../../../extensions.js' (从 public/extensions/third-party/你的插件名/index.js 到 public/extensions.js 的相对路径)
