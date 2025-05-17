@@ -1,0 +1,11 @@
+{
+    "display_name": "历史聊天管理器",
+    "loading_order": 20,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "html": ["popup.html"],
+    "author": "Your Name",
+    "version": "1.0.0",
+    "homePage": ""
+}
