@@ -43,7 +43,7 @@ import {
 } from '../../../utils.js'
 
 // 插件文件夹名称
-const pluginFolderName = 'chat-backup-manager-ui';
+const pluginFolderName = 'chat-history-manager';
 
 // 插件的唯一 ID (与 manifest.json 中的 id 对应，但这里只用于日志和内部识别)
 const pluginId = 'chat-backup-manager-ui';
