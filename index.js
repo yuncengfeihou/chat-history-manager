@@ -1,130 +1,339 @@
-// public/extensions/third-party/my-ui-injection-plugin/index.js
+// public/extensions/third-party/chat-backup-manager-ui/index.js
 
-// 导入 SillyTavern 提供的辅助函数
-// renderExtensionTemplateAsync 用于加载插件目录下的 HTML 模板
-import { renderExtensionTemplateAsync } from '../../../extensions.js';
-// getContext 用于获取当前的聊天上下文（虽然本示例没用到，但实际插件中非常常用）
-// import { getContext } from '../../../../script.js';
-// Popup, callGenericPopup 用于创建弹窗（虽然本示例没用到，但实际插件中常用）
-// import { Popup, POPUP_TYPE, POPUP_RESULT, callGenericPopup } from '../../../../popup.js';
+// 导入 SillyTavern 提供的核心函数和变量
+import {
+    getRequestHeaders, // 获取发送 API 请求所需的头部信息 (CSRF token)
+    callGenericPopup, // 调用通用弹窗
+    POPUP_TYPE, // 弹窗类型枚举
+    POPUP_RESULT, // 弹窗结果枚举
+    timestampToMoment, // 将时间戳转换为 Moment.js 对象
+    saveChatConditional, // 有条件地保存当前聊天
+    openCharacterChat, // 打开指定角色的聊天文件
+    selected_group, // 当前选中的群组 ID
+    select_group_chats, // 选择并加载指定的群组聊天文件
+    characters, // 全局角色数组
+    groups, // 全局群组数组
+    t // 国际化函数
+} from '../../../../script.js';
 
+// 导入加载 HTML 模板的辅助函数
+import { renderExtensionTemplateAsync, getContext} from '../../../extensions.js';
 
-// 定义插件文件夹的名称，用于加载模板
-const pluginFolderName = 'chat-history-manager';
+// 插件文件夹名称
+const pluginFolderName = 'chat-backup-manager-ui';
 
-// 定义将要注入到每条消息上的按钮的 HTML 结构
-// 直接定义为字符串更方便，因为结构比较简单且会重复使用
-const messageButtonHtml = `
-    <div class="mes_button my-plugin-message-button" title="消息操作 (UI 注入示例)">
-        <i class="fa-solid fa-flag"></i> <!-- 示例：使用 Font Awesome 图标 -->
-    </div>
-`;
+// 插件的唯一 ID (与 manifest.json 中的 id 对应，但这里只用于日志和内部识别)
+const pluginId = 'chat-backup-manager-ui';
 
+// 备份管理器弹窗实例（用于后续关闭操作）
+let backupManagerPopup = null;
+
+// --- UI 注入 ---
 
 // 这是插件的主入口点，所有需要操作 DOM 的代码都应该放在 jQuery(async () => { ... }); 里面
-// 这能确保页面的 HTML 结构已经加载完成，可以安全地查找和操作元素
 jQuery(async () => {
-    console.log(`[${pluginFolderName}] 插件已加载！`);
+    console.log(`[${pluginId}] 插件已加载！`);
 
-    // --- 1. 注入内容到“扩展”页面 (#translation_container) ---
-    try {
-        // 使用 renderExtensionTemplateAsync 加载 settings_area.html 模板
-        // 第一个参数是相对于 public/extensions/ 的路径
-        // 第二个参数是 HTML 文件名，不带 .html 后缀！
-        const settingsHtml = await renderExtensionTemplateAsync(`third-party/${pluginFolderName}`, 'settings_area');
+    // 注入“管理备份”按钮到 Options 菜单
+    // 找到 Options 菜单容器 (#options)
+    const $optionsMenu = $('#options');
+    if ($optionsMenu.length) {
+        // 创建一个新的菜单项
+        const $backupButton = $(`
+            <div id="option_manage_backups" class="menu_button">
+                <span data-i18n="管理备份">管理备份</span>
+            </div>
+        `);
 
-        // 找到目标容器并追加 HTML 内容
-        // 尝试 '#translation_container'，如果你的 SillyTavern 版本较老，可能需要试试 '#extensions_settings'
-        const $settingsContainer = $('#translation_container');
-        if ($settingsContainer.length) {
-            $settingsContainer.append(settingsHtml);
-            console.log(`[${pluginFolderName}] 已添加设置界面到 #translation_container`);
-
-            // 获取设置界面中的按钮元素，并为其绑定点击事件
-            $('#my-plugin-settings-button').on('click', () => {
-                alert(`[${pluginFolderName}] 你点击了扩展设置里的按钮！`);
-                // 在这里可以添加更复杂的逻辑，比如打开配置弹窗等
-            });
+        // 将新按钮插入到Options菜单的特定位置 (例如“选择聊天”按钮之后)
+        const $selectChatButton = $('#option_select_chat');
+        if ($selectChatButton.length) {
+             $backupButton.insertAfter($selectChatButton);
+             console.log(`[${pluginId}] 已将“管理备份”按钮注入到 Options 菜单。`);
         } else {
-            console.warn(`[${pluginFolderName}] 未找到 #translation_container 或 #extensions_settings 容器，无法注入设置界面。`);
+             // 如果没有“选择聊天”按钮，就追加到菜单末尾
+            $optionsMenu.append($backupButton);
+             console.log(`[${pluginId}] 已将“管理备份”按钮追加到 Options 菜单。`);
         }
 
 
-    } catch (error) {
-        console.error(`[${pluginFolderName}] 加载或注入 settings_area.html 失败:`, error);
-    }
-    // --- 注入“扩展”页面结束 ---
-
-
-    // --- 2. 注入按钮到输入框右侧区域 (#data_bank_wand_container) ---
-    try {
-        // 使用 renderExtensionTemplateAsync 加载 input_area_button.html 模板
-        const inputButtonHtml = await renderExtensionTemplateAsync(`third-party/${pluginFolderName}`, 'input_area_button');
-
-        // 找到目标容器 (#data_bank_wand_container) 并追加按钮 HTML
-        const $inputButtonContainer = $('#data_bank_wand_container');
-         if ($inputButtonContainer.length) {
-            $inputButtonContainer.append(inputButtonHtml);
-            console.log(`[${pluginFolderName}] 已添加按钮到 #data_bank_wand_container`);
-
-            // 获取注入的按钮元素 (使用其 ID) 并为其绑定点击事件
-            $('#my_plugin_input_button').on('click', () => {
-                alert(`[${pluginFolderName}] 你点击了输入框旁边的插件按钮！`);
-                // 在这里可以添加快捷操作逻辑，比如插入特定文本、触发生成等
-            });
-        } else {
-             console.warn(`[${pluginFolderName}] 未找到 #data_bank_wand_container 容器，无法注入输入区域按钮。`);
-        }
-
-    } catch (error) {
-        console.error(`[${pluginFolderName}] 加载或注入 input_area_button.html 失败:`, error);
-    }
-    // --- 注入输入框右侧区域结束 ---
-
-
-    // --- 3. 注入按钮到每条聊天消息 (.extraMesButtons) ---
-    try {
-        // 找到所有当前页面上已存在的消息的附加按钮容器 (.extraMesButtons)
-        // 并将我们定义好的消息按钮 HTML 追加进去
-        $('.extraMesButtons').append(messageButtonHtml);
-        console.log(`[${pluginFolderName}] 已添加按钮到现有的 .extraMesButtons`);
-
-        // 使用事件委托 (Event Delegation) 来处理消息按钮的点击事件
-        // 这是处理动态添加元素（如新生成的消息）事件监听的推荐方式
-        // 我们将监听器绑定到 #chat 容器上，当点击事件来源于 .my-plugin-message-button 元素时触发
-        $('#chat').on('click', '.my-plugin-message-button', function(event) {
-            // 'this' 在事件委托的回调函数中指向实际被点击的那个 .my-plugin-message-button 元素
-
-            alert(`[${pluginFolderName}] 你点击了消息上的插件按钮！`);
-
-            // (可选) 获取这条消息的 ID
-            // .closest('.mes') 向上查找距离当前元素最近的、带有 .mes 类的祖先元素（即消息容器）
-            // .attr('mesid') 读取该消息容器的 mesid 属性
-            const $messageElement = $(this).closest('.mes');
-            const messageId = $messageElement.attr('mesid');
-
-            if (messageId !== undefined) { // mesid 可能是一个字符串数字
-                console.log(`[${pluginFolderName}] 点击了消息 ID: ${messageId} 上的按钮`);
-                // 你可以使用 messageId 来查找 chat 数组中对应的消息对象
-                // const context = getContext();
-                // const message = context.chat[parseInt(messageId)];
-                // if (message) {
-                //     console.log('对应消息内容:', message.mes);
-                // }
-            } else {
-                 console.warn(`[${pluginFolderName}] 无法获取消息 ID`);
-            }
-
-            // (可选) 阻止事件进一步冒泡，如果不需要让点击事件影响到父元素（如消息本身的可编辑区域）
-            // event.stopPropagation();
+        // 为新按钮绑定点击事件
+        $backupButton.on('click', async () => {
+            // 点击后打开备份管理弹窗
+            await openBackupManagerPopup();
+             // 关闭 Options 菜单
+            $('#options').hide();
         });
-        console.log(`[${pluginFolderName}] 已为 .my-plugin-message-button 设置事件委托`);
-
-    } catch(error) {
-        console.error(`[${pluginFolderName}] 添加消息按钮或设置事件委托失败:`, error);
+    } else {
+        console.warn(`[${pluginId}] 未找到 Options 菜单容器 (#options)，无法注入按钮。`);
     }
-    // --- 注入消息按钮结束 ---
 
+    // --- 绑定事件委托，处理弹窗内部的按钮点击 ---
+    // 将监听器绑定到 document 上，因为弹窗是动态创建的
+    $(document).on('click', '.backup-manager-popup .restore-backup-button', async function() {
+        // 'this' 指向被点击的“恢复”按钮
+        const filename = $(this).data('filename'); // 获取按钮上存储的文件名
 
-    console.log(`[${pluginFolderName}] 所有 UI 注入尝试完成。`);
+        if (filename) {
+            console.log(`[${pluginId}] 用户点击恢复备份: ${filename}`);
+            await restoreBackup(filename); // 调用恢复函数
+        } else {
+            console.warn(`[${pluginId}] 恢复按钮缺少文件名数据。`);
+        }
+    });
+
+    // 你可以根据需要添加删除、导出等按钮的事件委托监听器
+
+    console.log(`[${pluginId}] 所有 UI 注入和基础事件绑定完成。`);
 });
+
+// --- 插件功能函数 ---
+
+/**
+ * 打开聊天备份管理弹窗
+ */
+async function openBackupManagerPopup() {
+    console.log(`[${pluginId}] 打开备份管理器弹窗...`);
+
+    // 获取当前的上下文（角色或群组）
+    const context = getContext();
+    const currentEntityId = context.characterId !== undefined ? context.characterId : context.selected_group;
+    const isGroup = context.selected_group !== undefined;
+
+    // 如果没有选中角色也没有选中群组，显示提示信息并退出
+    if (currentEntityId === undefined) {
+        console.log(`[${pluginId}] 未选中角色或群组，无法显示备份。`);
+        // 使用弹窗模板，但只显示“未选中”消息
+        const popupHtml = await renderExtensionTemplateAsync(`third-party/${pluginFolderName}`, 'backup_manager_popup');
+        backupManagerPopup = new Popup($(popupHtml), POPUP_TYPE.TEXT, null, {
+            wide: true, large: true, allowVerticalScrolling: true,
+            onClose: () => backupManagerPopup = null // 弹窗关闭时清理引用
+        });
+        // 隐藏列表容器，显示提示消息
+        backupManagerPopup.dlg.querySelector('#backup-list-container').style.display = 'none';
+        backupManagerPopup.dlg.querySelector('#no-entity-selected-message').style.display = 'block';
+        backupManagerPopup.dlg.querySelector('#backup-manager-title').textContent = t('聊天备份管理器'); // 设置标题
+        backupManagerPopup.dlg.querySelector('#backup-manager-title').dataset.i18n = '聊天备份管理器'; // 设置标题 i18n
+
+        await backupManagerPopup.show();
+        return;
+    }
+
+    // 加载弹窗的 HTML 模板
+    try {
+        const popupHtml = await renderExtensionTemplateAsync(`third-party/${pluginFolderName}`, 'backup_manager_popup');
+
+        // 使用 Popup 类创建并显示弹窗
+        // POPUP_TYPE.TEXT 类型自带 OK/Cancel 按钮，可以满足我们的需求
+        backupManagerPopup = new Popup($(popupHtml), POPUP_TYPE.TEXT, null, {
+            wide: true, large: true, allowVerticalScrolling: true,
+            // 当弹窗关闭时，将 backupManagerPopup 变量设为 null，方便垃圾回收和判断
+            onClose: () => backupManagerPopup = null
+        });
+
+        // 设置弹窗标题
+        const entityName = isGroup ? groups.find(g => g.id === selected_group)?.name : characters[context.characterId]?.name;
+        const title = t('备份文件') + (entityName ? ` - ${entityName}` : '');
+        backupManagerPopup.dlg.querySelector('#backup-manager-title').textContent = title;
+        backupManagerPopup.dlg.querySelector('#backup-manager-title').dataset.i18n = '[html]' + title; // 设置标题 i18n
+
+        // 隐藏“未选中”消息，显示列表容器
+        backupManagerPopup.dlg.querySelector('#backup-list-container').style.display = 'block';
+        backupManagerPopup.dlg.querySelector('#no-entity-selected-message').style.display = 'none';
+
+
+        // 获取备份文件列表并填充到弹窗中
+        await fetchAndDisplayBackups(context, backupManagerPopup.dlg.querySelector('#backup-list-container'));
+
+        // 显示弹窗
+        await backupManagerPopup.show();
+
+    } catch (error) {
+        console.error(`[${pluginId}] 打开备份管理器弹窗失败:`, error);
+        // 如果加载模板失败，显示一个错误提示弹窗
+        callGenericPopup(t('无法加载备份管理器界面。'), POPUP_TYPE.TEXT);
+    }
+}
+
+/**
+ * 从后端获取聊天备份文件列表并填充到指定的 HTML 容器中
+ * @param {object} context - 当前 SillyTavern 上下文 (包含 characterId 或 selected_group)
+ * @param {HTMLElement} container - 用于显示备份列表的 HTML 容器元素
+ */
+async function fetchAndDisplayBackups(context, container) {
+    console.log(`[${pluginId}] 正在获取备份文件列表...`);
+    $(container).empty(); // 清空列表容器
+
+    try {
+        // 准备 API 请求体
+        const requestBody = {
+            query: '', // 空查询表示获取所有文件
+            avatar_url: context.characterId !== undefined ? characters[context.characterId]?.avatar : null,
+            group_id: context.selected_group !== undefined ? context.selected_group : null,
+        };
+
+        // 调用后端 API 获取聊天列表
+        const response = await fetch('/api/chats/search', {
+            method: 'POST',
+            headers: getRequestHeaders(),
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP 错误! 状态: ${response.status}`);
+        }
+
+        const backups = await response.json();
+        console.log(`[${pluginId}] 获取到 ${backups.length} 个备份文件。`);
+
+        // 按最后修改时间排序 (最近的在前面)
+        backups.sort((a, b) => {
+            const momentA = timestampToMoment(a.last_mes);
+            const momentB = timestampToMoment(b.last_mes);
+            // 降序排序 (新的在前)
+            if (momentA.isValid() && momentB.isValid()) {
+                 if (momentA.isBefore(momentB)) return 1;
+                 if (momentA.isAfter(momentB)) return -1;
+                 return 0;
+            }
+            // 处理无效日期，将有效日期排在前面
+            if (momentA.isValid()) return -1;
+            if (momentB.isValid()) return 1;
+            return 0; // 两个都无效，顺序不变
+        });
+
+
+        // 获取当前活动的聊天文件名，用于高亮显示
+        const currentChatFilename = context.selected_group
+            ? groups.find(g => g.id === context.selected_group)?.chat_id
+            : characters[context.characterId]?.chat;
+
+
+        // 遍历备份列表，为每个备份创建 HTML 条目并添加到容器
+        if (backups.length === 0) {
+            $(container).html(`<div class="no-entity-selected"><p data-i18n>没有找到备份文件。</p></div>`);
+             container.querySelector('p').dataset.i18n = '没有找到备份文件。';
+        } else {
+            backups.forEach(backup => {
+                // 格式化最后修改时间
+                const lastMesTime = timestampToMoment(backup.last_mes).format('YYYY-MM-DD HH:mm');
+
+                // 创建备份条目 HTML
+                const $backupItem = $(`
+                    <div class="backup-item">
+                        <div class="backup-info">
+                            <div class="filename">${backup.file_name}</div>
+                            <div class="meta" data-i18n="[html]${t('最后更新')}: ${lastMesTime}, ${t('消息数')}: ${backup.message_count}">
+                                ${t('最后更新')}: ${lastMesTime}, ${t('消息数')}: ${backup.message_count}
+                            </div>
+                            <div class="meta preview">${backup.preview_message ? t('预览') + ': ' + backup.preview_message : ''}</div>
+                        </div>
+                        <div class="backup-actions">
+                            <button class="menu_button restore-backup-button" data-filename="${backup.file_name}" data-i18n="恢复">恢复</button>
+                            <!-- 可以添加更多按钮，如删除、导出 -->
+                            <!-- <button class="menu_button delete-backup-button" data-filename="${backup.file_name}" data-i18n="删除">删除</button> -->
+                        </div>
+                    </div>
+                `);
+
+                // 高亮显示当前聊天文件
+                if (backup.file_name === `${currentChatFilename}.jsonl`) {
+                    $backupItem.addClass('is-current');
+                }
+
+
+                $(container).append($backupItem);
+            });
+        }
+
+
+    } catch (error) {
+        console.error(`[${pluginId}] 获取或显示备份文件列表失败:`, error);
+        $(container).html(`<div class="no-entity-selected"><p data-i18n="无法加载备份文件列表。">无法加载备份文件列表。</p><p>${error.message}</p></div>`);
+         container.querySelector('p[data-i18n="无法加载备份文件列表。"]').dataset.i18n = '无法加载备份文件列表。';
+
+    }
+}
+
+/**
+ * 恢复指定的聊天备份文件
+ * @param {string} filename - 要恢复的备份文件名称 (包含 .jsonl 后缀)
+ */
+async function restoreBackup(filename) {
+    console.log(`[${pluginId}] 尝试恢复备份: ${filename}`);
+
+    // 1. 确认用户是否要保存当前聊天
+    const confirmSave = await callGenericPopup(
+        t('您确定要恢复备份吗？当前聊天中未保存的修改将会丢失。'),
+        POPUP_TYPE.CONFIRM,
+        null,
+        {
+            okButton: t('恢复并保存当前'), // 默认按钮：保存当前聊天再恢复
+            cancelButton: t('取消'), // 取消操作
+            customButtons: [t('恢复不保存')], // 自定义按钮：不保存当前聊天直接恢复
+            defaultResult: POPUP_RESULT.AFFIRMATIVE // 默认选中“恢复并保存当前”
+        }
+    );
+
+    // 根据用户选择执行操作
+    if (confirmSave === POPUP_RESULT.CANCELLED) {
+        console.log(`[${pluginId}] 用户取消恢复操作。`);
+        return; // 用户取消
+    }
+
+    if (confirmSave === POPUP_RESULT.AFFIRMATIVE) {
+        // 用户选择“恢复并保存当前”
+        console.log(`[${pluginId}] 用户选择保存当前聊天。`);
+        await saveChatConditional(); // 等待当前聊天保存完成
+    } else {
+        // 用户选择“恢复不保存” (对应 customButtons 的第一个，结果为 2)
+        console.log(`[${pluginId}] 用户选择不保存当前聊天。`);
+        // 不需要保存，直接继续
+    }
+
+    // 2. 执行恢复操作 (加载选定的备份文件)
+    try {
+        // 获取当前上下文判断是角色还是群组
+        const context = getContext();
+        const isGroup = context.selected_group !== undefined;
+
+        if (isGroup) {
+            // 如果是群组，调用 select_group_chats 函数
+            // select_group_chats(groupId, chatFileNameWithoutExtension)
+            const groupId = context.selected_group;
+            const chatFileNameWithoutExtension = filename.replace('.jsonl', '');
+            console.log(`[${pluginId}] 正在加载群组 ${groupId} 的聊天文件: ${chatFileNameWithoutExtension}`);
+            await select_group_chats(groupId, chatFileNameWithoutExtension);
+
+        } else if (context.characterId !== undefined) {
+            // 如果是角色，调用 openCharacterChat 函数
+            // openCharacterChat(chatFileNameWithoutExtension)
+            const chatFileNameWithoutExtension = filename.replace('.jsonl', '');
+             console.log(`[${pluginId}] 正在加载角色 ${characters[context.characterId]?.name} 的聊天文件: ${chatFileNameWithoutExtension}`);
+            await openCharacterChat(chatFileNameWithoutExtension);
+
+        } else {
+            // 这应该不会发生，因为我们在打开弹窗时已经检查过，但为了安全还是处理一下
+            console.error(`[${pluginId}] 无法确定是角色还是群组上下文。`);
+             callGenericPopup(t('无法确定当前上下文，恢复失败。'), POPUP_TYPE.TEXT);
+             return;
+        }
+
+
+        // 3. 加载成功后，关闭备份管理器弹窗并提示用户
+        if (backupManagerPopup) {
+            await backupManagerPopup.completeAffirmative(); // 关闭弹窗
+            backupManagerPopup = null; // 清理引用
+        }
+
+        // 刷新 UI 显示新的聊天内容（openCharacterChat 和 select_group_chats 内部会处理）
+        // 显示成功提示
+        toastr.success(t('聊天备份已恢复！'), t('恢复成功'));
+        console.log(`[${pluginId}] 备份文件 ${filename} 恢复成功。`);
+
+    } catch (error) {
+        console.error(`[${pluginId}] 恢复备份 ${filename} 失败:`, error);
+        // 恢复失败，显示错误提示
+        callGenericPopup(t('恢复聊天备份失败。'), POPUP_TYPE.TEXT, null, { text: error.message });
+    }
+}
