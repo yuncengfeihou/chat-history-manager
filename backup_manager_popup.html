@@ -2,7 +2,7 @@
 
 <div class="chat-backup-manager-popup">
     <!-- 弹窗标题将在 JS 中动态设置 -->
-    <h3 id="backup-manager-title" data-i18n>聊天备份管理器</h3>
+    <h3 id="backup-manager-title">聊天备份管理器</h3> <!-- 移除 data-i18n -->
 
     <!-- 备份列表将在这里动态加载 -->
     <div class="backup-list" id="backup-list-container">
@@ -11,7 +11,7 @@
 
     <!-- 没有选中角色/群组时的提示 -->
     <div id="no-entity-selected-message" class="no-entity-selected" style="display: none;">
-        <p data-i18n>请先选择一个角色或群组来管理其聊天备份。</p>
+        <p>请先选择一个角色或群组来管理其聊天备份。</p> <!-- 移除 data-i18n -->
     </div>
 
     <!-- 弹窗底部的按钮（OK/Cancel 等）将由 Popup 类自动生成和管理 -->
