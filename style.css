@@ -1,42 +1,75 @@
-/* public/extensions/third-party/my-ui-injection-plugin/style.css */
+/* public/extensions/third-party/chat-backup-manager-ui/style.css */
 
-/* 扩展页面设置区的背景和边框 */
-.my-ui-injection-plugin .inline-drawer-content {
-    background-color: #3a3a3a; /* 深灰色背景 */
-    border: 1px solid #555;
-    margin-top: 5px;
-    border-radius: 5px;
+/* 弹窗的整体样式 */
+.chat-backup-manager-popup .popup-content {
+    padding: 10px;
 }
 
-/* 扩展页面设置区的高亮文本 */
-.my-ui-injection-plugin .my-plugin-highlight {
-    color: #ffcc00; /* 黄色高亮 */
-    font-weight: bold;
+.chat-backup-manager-popup h3 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: var(--text-color); /* 使用 SillyTavern 的文本颜色变量 */
 }
 
-/* 输入框旁边的按钮样式 */
-#my_plugin_input_button {
-    border: 1px dashed #00ffff; /* 青色虚线边框 */
+/* 备份列表容器 */
+.backup-list {
+    max-height: 400px; /* 设置最大高度，防止列表过长 */
+    overflow-y: auto; /* 允许垂直滚动 */
+    border: 1px solid var(--border-color);
     border-radius: 5px;
     padding: 5px;
-    margin: 2px;
-    background-color: #2a2a2a; /* 深一些的背景 */
-    transition: background-color 0.2s ease;
+    background-color: var(--bg-color);
 }
 
-#my_plugin_input_button:hover {
-    background-color: #3a3a3a;
+/* 列表中的每个备份条目 */
+.backup-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-color);
 }
 
-/* 消息上按钮的样式 */
-.mes_button.my-plugin-message-button {
-    color: #00ff00; /* 绿色图标 */
-    border: 1px solid #00ff00;
-    border-radius: 3px;
-    padding: 2px;
-    margin-left: 5px; /* 与其他按钮间隔 */
+.backup-item:last-child {
+    border-bottom: none; /* 最后一个条目没有底边框 */
 }
 
-.mes_button.my-plugin-message-button:hover {
-    background-color: rgba(0, 255, 0, 0.2); /* 半透明绿色背景 */
+/* 文件名和信息区域 */
+.backup-info {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.backup-info .filename {
+    font-weight: bold;
+    color: var(--link-color); /* 使用 SillyTavern 的链接颜色变量 */
+    word-break: break-all; /* 长文件名自动换行 */
+}
+
+.backup-info .meta {
+    font-size: 0.9em;
+    color: var(--text-color-alt); /* 使用 SillyTavern 的辅助文本颜色变量 */
+}
+
+/* 当前聊天的高亮样式 */
+.backup-item.is-current {
+    background-color: var(--bg-color-alt); /* 使用 SillyTavern 的辅助背景颜色变量 */
+    border-left: 4px solid var(--AccentColor); /* 使用 SillyTavern 的强调颜色变量 */
+    padding-left: 4px;
+}
+
+/* 按钮区域 */
+.backup-actions .menu_button {
+    padding: 5px 10px;
+    font-size: 0.9em;
+    white-space: nowrap; /* 按钮文本不换行 */
+}
+
+/* 没有选中角色/群组时的提示 */
+.no-entity-selected {
+    text-align: center;
+    color: var(--text-color-alt);
+    margin-top: 20px;
 }
