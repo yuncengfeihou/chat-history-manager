@@ -1,22 +1,41 @@
-// public/extensions/third-party/chat-backup-manager-ui/index.js
-
-// 导入 SillyTavern 提供的核心函数和变量
 import {
+    // saveSettingsDebounced, // 本插件暂时未使用此函数，如果需要保存插件自身设置，则需要导入
+    // getCurrentChatId, // getContext() 提供了相关信息，通常更推荐
+    // eventSource, // 本插件暂时未使用事件监听，如果需要监听全局事件，则需要导入
+    // event_types, // 同上
+    // messageFormatting, // 本插件暂时未使用消息格式化
     getRequestHeaders, // 获取发送 API 请求所需的头部信息 (CSRF token)
-    callGenericPopup, // 调用通用弹窗
-    POPUP_TYPE, // 弹窗类型枚举
-    POPUP_RESULT, // 弹窗结果枚举
-    timestampToMoment, // 将时间戳转换为 Moment.js 对象
-    saveChatConditional, // 有条件地保存当前聊天
-    openCharacterChat, // 打开指定角色的聊天文件
     selected_group, // 当前选中的群组 ID
-    select_group_chats, // 选择并加载指定的群组聊天文件
     characters, // 全局角色数组
     groups, // 全局群组数组
+    openCharacterChat, // 打开指定角色的聊天文件
+    select_group_chats, // 选择并加载指定的群组聊天文件
+    saveChatConditional // 有条件地保存当前聊天 (用于恢复前保存当前聊天)
 } from '../../../../script.js';
 
-// 导入加载 HTML 模板的辅助函数
-import { renderExtensionTemplateAsync, getContext} from '../../../extensions.js';
+// 导入从 extensions.js 提供的辅助函数和变量
+// 路径: '../../../extensions.js' (从 public/extensions/third-party/你的插件名/index.js 到 public/extensions.js 的相对路径)
+import {
+    getContext, // 获取当前的聊天上下文 (角色/群组)
+    renderExtensionTemplateAsync, // 用于加载插件目录下的 HTML 模板
+    // extension_settings, // 本插件暂时未使用插件自身设置，如果需要存储插件的配置，则需要导入
+} from '../../../extensions.js';
+
+// 导入从 popup.js 提供的弹窗工具
+// 路径: '../../../popup.js' (从 public/extensions/third-party/你的插件名/index.js 到 public/popup.js 的相对路径)
+import {
+    Popup, // 弹窗类
+    POPUP_TYPE, // 弹窗类型枚举
+    callGenericPopup, // 调用通用弹窗的便捷函数
+    POPUP_RESULT, // 弹窗结果枚举
+} from '../../../popup.js';
+
+// 导入从 utils.js 提供的通用工具函数
+// 路径: '../../../utils.js' (从 public/extensions/third-party/你的插件名/index.js 到 public/utils.js 的相对路径)
+import {
+    // uuidv4, // 本插件暂时未使用 uuidv4
+    timestampToMoment, // 将时间戳转换为 Moment.js 对象
+} from '../../../utils.js'
 
 // 插件文件夹名称
 const pluginFolderName = 'chat-backup-manager-ui';
