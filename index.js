@@ -13,7 +13,6 @@ import {
     select_group_chats, // 选择并加载指定的群组聊天文件
     characters, // 全局角色数组
     groups, // 全局群组数组
-    t // 国际化函数
 } from '../../../../script.js';
 
 // 导入加载 HTML 模板的辅助函数
