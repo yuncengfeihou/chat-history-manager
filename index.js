@@ -6,6 +6,7 @@ import {
     // messageFormatting, // 本插件暂时未使用消息格式化
     getRequestHeaders, // 获取发送 API 请求所需的头部信息 (CSRF token)
     characters, // 全局角色数组
+    t,
     openCharacterChat, // 打开指定角色的聊天文件
     saveChatConditional // 有条件地保存当前聊天 (用于恢复前保存当前聊天)
 } from '../../../../script.js';
