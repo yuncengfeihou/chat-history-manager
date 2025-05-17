@@ -12,7 +12,7 @@ jQuery(async () => {
 
     // --- 1. 加载 HTML 模板 ---
     // SillyTavern 核心函数，用于加载插件的 HTML 模板文件
-    const popupTemplateHTML = await renderExtensionTemplateAsync(`third-party/${pluginId}`, 'popup');
+    const popupTemplateHTML = await renderTemplateAsync(`third-party/${pluginId}`, 'popup');
     // 将模板添加到 DOM 中，但默认隐藏
     $('body').append($(popupTemplateHTML).hide());
 
