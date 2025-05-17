@@ -5,7 +5,6 @@ import {
     // event_types, // 同上
     // messageFormatting, // 本插件暂时未使用消息格式化
     getRequestHeaders, // 获取发送 API 请求所需的头部信息 (CSRF token)
-    selected_group, // 当前选中的群组 ID
     characters, // 全局角色数组
     openCharacterChat, // 打开指定角色的聊天文件
     saveChatConditional // 有条件地保存当前聊天 (用于恢复前保存当前聊天)
@@ -14,6 +13,7 @@ import {
 import {
     // --- 群组相关函数 ---
     select_group_chats,     // 用于选择群组聊天
+    selected_group, // 当前选中的群组 ID
     // getGroupChat, // 可能不需要，select_group_chats 应该会处理
     select_group_chats as selectGroupChatFile, // 选择并加载指定的群组聊天文件
 } from '../../../group-chats.js';
