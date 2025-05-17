@@ -1,9 +1,9 @@
 import {
-    // saveSettingsDebounced, // 本插件暂时未使用此函数，如果需要保存插件自身设置，则需要导入
-    // getCurrentChatId, // getContext() 提供了相关信息，通常更推荐
-    // eventSource, // 本插件暂时未使用事件监听，如果需要监听全局事件，则需要导入
-    // event_types, // 同上
-    // messageFormatting, // 本插件暂时未使用消息格式化
+    saveSettingsDebounced, // 本插件暂时未使用此函数，如果需要保存插件自身设置，则需要导入
+    getCurrentChatId, // getContext() 提供了相关信息，通常更推荐
+    eventSource, // 本插件暂时未使用事件监听，如果需要监听全局事件，则需要导入
+    event_types, // 同上
+    messageFormatting, // 本插件暂时未使用消息格式化
     getRequestHeaders, // 获取发送 API 请求所需的头部信息 (CSRF token)
     characters, // 全局角色数组
     openCharacterChat, // 打开指定角色的聊天文件
