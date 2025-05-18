@@ -14,7 +14,7 @@ import {
     // --- 群组相关函数 ---
     select_group_chats,     // 用于选择群组聊天
     selected_group, // 当前选中的群组 ID
-    // getGroupChat, // 可能不需要，select_group_chats 应该会处理
+    getGroupChat, // 可能不需要，select_group_chats 应该会处理
     select_group_chats as selectGroupChatFile, // 选择并加载指定的群组聊天文件
 } from '../../../group-chats.js';
 
@@ -23,7 +23,7 @@ import {
 import {
     getContext, // 获取当前的聊天上下文 (角色/群组)
     renderExtensionTemplateAsync, // 用于加载插件目录下的 HTML 模板
-    // extension_settings, // 本插件暂时未使用插件自身设置，如果需要存储插件的配置，则需要导入
+    extension_settings, // 本插件暂时未使用插件自身设置，如果需要存储插件的配置，则需要导入
 } from '../../../extensions.js';
 
 // 导入从 popup.js 提供的弹窗工具
